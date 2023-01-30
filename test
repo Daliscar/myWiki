@@ -1,0 +1,128 @@
+using GameServerCore;
+using LeagueSandbox.GameServer.Scripting.CSharp;
+using static LeagueSandbox.GameServer.API.ApiFunctionManager;
+using GameServerCore.Enums;
+using System.Numerics;
+using System.Collections.Generic;
+using GameServerCore.Scripting.CSharp;
+using LeagueSandbox.GameServer.GameObjects.AttackableUnits;
+using LeagueSandbox.GameServer.GameObjects.AttackableUnits.AI;
+using LeagueSandbox.GameServer.GameObjects.AttackableUnits.Buildings.AnimatedBuildings;
+using LeagueSandbox.GameServer.GameObjects.SpellNS;
+using LeagueSandbox.GameServer.GameObjects;
+
+namespace Spells
+{
+    public class ViktorGravitonField : ISpellScript
+    {
+        public SpellScriptMetadata ScriptMetadata { get; private set; } = new SpellScriptMetadata()
+        {
+            TriggersSpellCasts = true
+            // TODO
+        };
+        public void OnSpellPostCast(Spell spell)
+        {
+            var owner = spell.CastInfo.Owner as Champion;
+            var spellPos = new Vector2(spell.CastInfo.TargetPosition.X, spell.CastInfo.TargetPosition.Z);
+            // var smokeBomb = AddParticle(owner, null, "viktor_base_w_aug", spellPos);
+
+            // Minion m = AddMinion((Champion)owner, "ViktorSingularity", "ViktorSingularity", spellPos, owner.Team);
+            Particle p = AddParticle(owner, null, "viktor_base_w_aug_red", spellPos, lifetime: 4.0f);
+            // m.AddParticle(m, m, "viktor_base_w_aug", m);
+            LogInfo("Start!");
+
+            for (var i = 0.0f; i < 4.0f; i += 0.5f)
+            {
+                CreateTimer(i, () => {LogInfo("Ticked at:" + i);ApplySlow(owner, spell);});
+            }
+
+        }
+
+        private void ApplySlow(ObjAIBase owner, Spell spell)
+        {
+            List<AttackableUnit> units = GetUnitsInRange(owner.Position, 700, true);
+            var ad = new[] { .7f, .8f, .9f, 1f, 1.1f }[spell.CastInfo.SpellLevel - 1] * owner.Stats.AttackDamage.Total *
+                               0.5f;
+            var damage = 120.0f;
+            foreach (var unit in units)
+            {
+                unit.TakeDamage(owner, damage, DamageType.DAMAGE_TYPE_PHYSICAL, DamageSource.DAMAGE_SOURCE_SPELL, false);
+            }
+        }
+        // public SpellScriptMetadata ScriptMetadata { get; private set; } = new SpellScriptMetadata()
+        // {
+        //     TriggersSpellCasts = true
+        //     // TODO
+        // };
+
+        // public float petTimeAlive = 0.00f;
+
+        // public void OnSpellPostCast(Spell spell)
+        // {
+        //     var owner = spell.CastInfo.Owner;
+        //     var castrange = spell.GetCurrentCastRange();
+        //     var fieldDuration = 5.0f; //TODO: Split into Active duration and Hidden duration when Invisibility is implemented
+        //     var ownerPos = owner.Position;
+        //     var spellPos = new Vector2(spell.CastInfo.TargetPosition.X, spell.CastInfo.TargetPosition.Z);
+
+
+        //     if (Extensions.IsVectorWithinRange(ownerPos, spellPos, castrange))
+        //     {
+        //         Minion m = AddMinion((Champion)owner, "ViktorGravitonField", "ViktorGravitonField", spellPos, owner.Team);
+        //     }
+        // }
+    }
+}
+
+
+        // public static Minion AddMinion
+        // (
+        //     ObjAIBase owner,
+        //     string model,
+        //     string name,
+        //     Vector2 position,
+        //     TeamId team = TeamId.TEAM_NEUTRAL,
+        //     int skinId = 0,
+        //     bool ignoreCollision = false,
+        //     bool targetable = true,
+        //     bool isWard = false,
+        //     SpellDataFlags targetingFlags = 0,
+        //     ObjAIBase visibilityOwner = null,
+        //     bool isVisible = true,
+        //     bool aiPaused = true
+        // )
+
+        //         public static Pet CreatePet
+        // (
+        //     Champion owner,
+        //     Spell spell,
+        //     Vector2 position,
+        //     string name,
+        //     string model,
+        //     string buffName,
+        //     float lifeTime,
+        //     bool cloneInventory = true,
+        //     bool showMinimapIfClone = true,
+        //     bool disallowPlayerControl = false,
+        //     bool doFade = false,
+        //     bool isClone = true,
+        //     Stats stats = null,
+        //     string aiScript = "Pet"
+
+        // )
+
+            //         var tibbers = CreatePet
+            // (
+            //     owner,
+            //     spell,
+            //     new Vector2(spell.CastInfo.TargetPosition.X, spell.CastInfo.TargetPosition.Z),
+            //     "Tibbers",
+            //     "AnnieTibbers",
+            //     "InfernalGuardian",
+            //     45.0f,
+            //     showMinimapIfClone: false,
+            //     isClone: false
+            // );
+            // // var guideSpell = SetSpell(owner, "InfernalGuardianGuide", SpellSlotType.SpellSlots, 3);
+            // AddBuff("InfernalGuardianBurning", 45.0f, 1, spell, tibbers, owner);
+            // AddBuff("InfernalGuardianTimer", 45.0f, 1, spell, owner, owner);
